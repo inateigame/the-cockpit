@@ -1,0 +1,607 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ザ・コックピット</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: a beige 80s monitor bezel holds a 640x400 canvas (PC-98 resolution); stage chips above, keycap legend and touch pad below. Single committed dark "computer room" look. */
+:root{
+  --room:#17181c; --room-2:#202229; --line:#353843;
+  --ink:#e8e3d4; --muted:#a19b8b;
+  --bezel:#d9d0b8; --bezel-shade:#bfb498; --bezel-dark:#8c836b;
+  --amber:#ffc23d; --cyan:#7ff0ff; --led:#3fe06a; --red:#ff5a4a;
+  --key:#e7e0cd; --key-ink:#2b2923; --key-edge:#a69c82;
+  --display:"DotGothic16","MS Gothic","Osaka-Mono",monospace;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--room);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.7;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:22px 48px}
+.wrap{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{min-width:0}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(2rem,6vw,3rem);line-height:1;margin:0;color:var(--amber);letter-spacing:.06em;text-shadow:3px 3px 0 #2a5b8f;text-wrap:balance}
+.sub{margin:.5em 0 0;color:var(--muted);font-size:.9rem}
+.tool{font-family:var(--display);background:var(--room-2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:.45em .9em;font-size:.95rem;cursor:pointer}
+.tool:hover{border-color:var(--amber)}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px}
+.chip{font-family:var(--body);text-align:left;background:var(--room-2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.chip:hover:not(:disabled){border-color:var(--amber)}
+.chip[aria-pressed="true"]{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
+.chip:disabled{opacity:.42;cursor:not-allowed}
+.chip .no{font-family:var(--display);color:var(--amber);font-size:.8rem;letter-spacing:.08em}
+.chip .ap{font-weight:700;font-size:1rem}
+.chip .meta{font-family:var(--display);color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
+.monitor{background:linear-gradient(var(--bezel),var(--bezel-shade));border-radius:16px;padding:clamp(10px,3vw,26px) clamp(10px,3vw,26px) 8px;
+  box-shadow:inset 0 2px 0 #f1ebd8, inset 0 -4px 0 var(--bezel-dark), 0 22px 44px rgba(0,0,0,.55)}
+.screen{background:#000;border-radius:8px;padding:clamp(4px,1vw,8px);box-shadow:inset 0 0 0 3px #3d382c, inset 0 0 30px rgba(0,0,0,.9)}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:640/400;height:auto;border-radius:4px;outline:none;touch-action:manipulation}
+.chin{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 4px 2px}
+.chin span{font-family:var(--display);color:var(--bezel-dark);font-size:.72rem;letter-spacing:.2em}
+.led{width:9px;height:9px;border-radius:50%;background:var(--led);box-shadow:0 0 8px var(--led)}
+.touch{display:none;gap:10px;grid-template-columns:1fr 1fr 1fr;user-select:none;-webkit-user-select:none}
+@media (pointer:coarse){.touch{display:grid}}
+.pad{display:grid;gap:6px;grid-template-columns:repeat(3,1fr)}
+.pad button{font-family:var(--display);background:var(--key);color:var(--key-ink);border:0;border-bottom:4px solid var(--key-edge);border-radius:6px;min-height:46px;font-size:.85rem;touch-action:none;padding:2px}
+.pad button.on{transform:translateY(2px);border-bottom-width:2px;background:#fff3c9}
+.pad .sp{visibility:hidden}
+.panel{background:var(--room-2);border:1px solid var(--line);border-radius:6px;padding-block:14px 16px;padding-inline:18px}
+.panel h2{font-family:var(--display);font-weight:400;font-size:1rem;color:var(--cyan);margin:0 0 10px;letter-spacing:.08em}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 22px;margin:0;padding:0;list-style:none}
+.keys li{display:flex;align-items:center;gap:10px;min-width:0}
+.caps{display:flex;gap:4px;flex:none;width:7.6em}
+kbd{font-family:var(--display);display:inline-block;min-width:1.9em;text-align:center;background:var(--key);color:var(--key-ink);border-radius:4px;border-bottom:3px solid var(--key-edge);padding:0 .35em;font-size:.85rem;line-height:1.7}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+ol{margin:0;padding-left:1.4em;max-width:65ch}
+ol li{margin-bottom:3px}
+.note{color:var(--muted);font-size:.85rem;margin:8px 0 0}
+.k{font-family:var(--display);color:var(--amber)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>THE COCKPIT</h1>
+      <p class="sub">ザ・コックピット ― 旅客機ランディング・シミュレーター</p>
+    </div>
+    <button class="tool" id="snd" type="button">音声 ON</button>
+  </header>
+
+  <nav class="stages" id="stages" aria-label="空港の選択"></nav>
+
+  <div class="monitor">
+    <div class="screen"><canvas id="scr" tabindex="0" aria-label="コックピット画面"></canvas></div>
+    <div class="chin"><span>LANDING SIMULATOR  640×400</span><i class="led" aria-hidden="true"></i></div>
+  </div>
+
+  <div class="touch" id="touch" aria-label="タッチ操作">
+    <div class="pad">
+      <span class="sp"></span><button data-act="noseDn">機首↓</button><span class="sp"></span>
+      <button data-act="bankL">◀ 傾</button><button data-act="noseUp">機首↑</button><button data-act="bankR">傾 ▶</button>
+    </div>
+    <div class="pad">
+      <button data-act="rudL">RUD◀</button><button data-act="brake">BRK</button><button data-act="rudR">▶RUD</button>
+      <button data-tap="gear">GEAR</button><button data-tap="flap">FLAP</button><button data-tap="pause">PAUSE</button>
+    </div>
+    <div class="pad">
+      <span class="sp"></span><button data-act="thrUp">THR+</button><span class="sp"></span>
+      <span class="sp"></span><button data-act="thrDn">THR−</button><button data-tap="go">START</button>
+    </div>
+  </div>
+
+  <div class="two">
+    <section class="panel">
+      <h2>操縦キー</h2>
+      <ul class="keys">
+        <li><span class="caps"><kbd>4</kbd><kbd>6</kbd><kbd>←</kbd><kbd>→</kbd></span>エルロン（左右に傾ける）</li>
+        <li><span class="caps"><kbd>8</kbd><kbd>5</kbd><kbd>↑</kbd><kbd>↓</kbd></span>エレベーター（8/↑で機首下げ）</li>
+        <li><span class="caps"><kbd>Q</kbd><kbd>A</kbd></span>スロットル 上げ／下げ</li>
+        <li><span class="caps"><kbd>Z</kbd><kbd>X</kbd></span>ラダー（接地後は前輪操向）</li>
+        <li><span class="caps"><kbd>G</kbd></span>ギア 上げ／下げ</li>
+        <li><span class="caps"><kbd>F</kbd></span>フラップ UP → 20 → 30</li>
+        <li><span class="caps"><kbd>B</kbd></span>ブレーキ（押している間）</li>
+        <li><span class="caps"><kbd>P</kbd><kbd>M</kbd></span>一時停止／音声切替</li>
+        <li><span class="caps"><kbd>SPACE</kbd></span>スタート・次へ</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>着陸の手順</h2>
+      <ol>
+        <li>開始直後に <span class="k">G</span> でギアダウン、<span class="k">F</span> を2回押してフラップ30。</li>
+        <li>スロットルを調整して対気速度を <span class="k">130〜140kt</span> に保つ。</li>
+        <li>計器の紫バー（ILS）を中央に。左の PAPI は <span class="k">白2・赤2</span> が正しい進入角。</li>
+        <li>横風の空港では機首を風上へ向けて（クラブ）滑走路の延長線に乗せる。</li>
+        <li>50ft のコールで <span class="k">A</span> でアイドル、機首を少し上げてフレア。接地率 600fpm 以下が目安。</li>
+        <li>接地後は傾きを戻し、<span class="k">B</span> で停止するまでブレーキ。</li>
+      </ol>
+      <p class="note">着陸に成功すると次の空港が開きます。後の空港ほど横風と突風が強くなります。</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('scr'), ctx=cv.getContext('2d');
+const W=640,H=400,VH=262,CX=320,CY=112,F=520,NEAR=1.5,EYE=4;
+const KT=0.514444,FT=3.28084,D2R=Math.PI/180,R2D=180/Math.PI,G=9.81;
+const FONT='"DotGothic16","MS Gothic",monospace';
+const C={white:'#eef2f4',cyan:'#7ff0ff',amber:'#ffc23d',green:'#3fe06a',red:'#ff4a4a',mag:'#ff66ee',dim:'#6b7078',face:'#0a0b0e',rim:'#4b4f58',panel:'#1c1e24'};
+const STAGES=[
+ {name:'羽田',rwy:'34L',hdg:337,len:3000,head:5,cross:0,gust:0,tod:'night',off:60},
+ {name:'伊丹',rwy:'32L',hdg:317,len:3000,head:6,cross:4,gust:2,tod:'night',off:90},
+ {name:'福岡',rwy:'34',hdg:337,len:2800,head:4,cross:8,gust:4,tod:'night',off:120},
+ {name:'新千歳',rwy:'01R',hdg:3,len:3000,head:6,cross:-11,gust:6,tod:'night',off:150},
+ {name:'那覇',rwy:'18',hdg:180,len:3000,head:10,cross:14,gust:8,tod:'night',off:160},
+ {name:'八丈島',rwy:'25',hdg:250,len:2000,head:8,cross:-18,gust:11,tod:'night',off:180},
+];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const approach=(v,t,r)=>v<t?Math.min(t,v+r):Math.max(t,v-r);
+const hash=(a,b)=>{const h=Math.sin(a*127.1+b*311.7)*43758.5453;return h-Math.floor(h)};
+function windInfo(st){const dir=((st.hdg+Math.atan2(st.cross,st.head)*R2D)%360+360)%360;const spd=Math.round(Math.hypot(st.cross,st.head));
+  let d=Math.round(dir/10)*10; if(d===0)d=360; return {dir:String(d).padStart(3,'0'),spd};}
+
+/* save data */
+let save={unlocked:1,best:{}};
+try{const s=JSON.parse(localStorage.getItem('cockpit.save')||'null'); if(s&&s.unlocked) save={unlocked:s.unlocked,best:s.best||{}};}catch(e){}
+function persist(){try{localStorage.setItem('cockpit.save',JSON.stringify(save))}catch(e){}}
+
+/* state */
+let stage=0, mode='title', P=null, result=null, paused=false, gp=[0,0,0,0], wind={x:0,d:0};
+let msg={text:'',t0:0}, call={text:'',t0:-9}, flash=0;
+const called=new Set();
+const keys={};
+const now=()=>performance.now()/1000;
+
+function reset(i){
+  stage=i; const st=STAGES[i];
+  const side=Math.random()<.5?-1:1, g0=-3*D2R, V=150*KT;
+  const cl=8*Math.cos(g0)/((V/75)**2);
+  P={x:side*st.off*(0.6+Math.random()*0.4), d:-8000, y:8000*Math.tan(3*D2R)+(Math.random()*90-35), V,
+     psi:(Math.random()*4-2)*D2R, theta:g0+(cl-2)*D2R, phi:0, gamma:g0, thr:0.44, eng:0.44,
+     gear:0, gearCmd:0, flap:0, flapCmd:0, ground:false, t:0, td:null, prevFt:99999, msg2:false,
+     vx:0, vd:V, vy:V*Math.sin(g0), alpha:0};
+  for(let k=0;k<4;k++) gp[k]=Math.random()*6.28;
+  called.clear(); result=null; paused=false; call.t0=-9; flash=0;
+  const w=windInfo(st);
+  setMsg(`JA8150、${st.name}タワー。滑走路${st.rwy}、風${w.dir}度${w.spd}ノット${st.gust?`、突風${w.spd+st.gust}ノット`:''}。着陸を許可します。`);
+  renderChips();
+}
+function setMsg(t,speakIt){msg={text:t,t0:now()}; if(speakIt) speak(t.replace(/JA8150/g,'ジェイエー8150'),'ja-JP');}
+
+function start(){
+  initAudio();
+  if(mode==='result'&&result&&result.ok&&stage+1<STAGES.length) reset(stage+1);
+  else if(mode!=='title') reset(stage);
+  mode='fly';
+  speak(msg.text.replace(/JA8150/g,'ジェイエー8150'),'ja-JP');
+}
+
+/* physics */
+function update(dt){
+  const st=STAGES[stage]; P.t+=dt; const t=P.t;
+  const n1=Math.sin(.63*t+gp[0])*.6+Math.sin(1.7*t+gp[1])*.4;
+  const n2=Math.sin(.41*t+gp[2])*.6+Math.sin(2.3*t+gp[3])*.4;
+  wind.x=-(st.cross+st.gust*n1)*KT; wind.d=-(st.head+st.gust*.5*n2)*KT;
+  const k=keys;
+  P.thr=clamp(P.thr+((k.thrUp?1:0)-(k.thrDn?1:0))*0.4*dt,0,1);
+  P.eng+=(P.thr-P.eng)*Math.min(1,dt*0.9);
+  P.gear=approach(P.gear,P.gearCmd,dt/4);
+  P.flap=approach(P.flap,[0,.6,1][P.flapCmd],dt/5);
+  if(!P.ground){
+    const roll=(k.bankR?1:0)-(k.bankL?1:0), pit=(k.noseUp?1:0)-(k.noseDn?1:0), rud=(k.rudR?1:0)-(k.rudL?1:0);
+    P.phi+=roll*18*D2R*dt; P.theta+=pit*4*D2R*dt;
+    P.phi+=st.gust*0.5*D2R*Math.sin(2.9*t+gp[1])*Math.sin(.8*t+gp[2])*dt;
+    P.theta+=st.gust*0.1*D2R*Math.sin(3.7*t+gp[3])*dt;
+    P.phi=clamp(P.phi,-60*D2R,60*D2R); P.theta=clamp(P.theta,-20*D2R,25*D2R);
+    const fl=4*P.flap; const a=(P.theta-P.gamma)*R2D;
+    let cl=a<15?a+2+fl:(17+fl)-(a-15)*1.8; cl=Math.max(cl,-8);
+    const ge=P.y<18?1+0.12*(1-P.y/18):1;
+    const L=(P.V/75)**2*cl/8*ge;
+    P.gamma+=G/P.V*(L*Math.cos(P.phi)-Math.cos(P.gamma))*dt;
+    const drag=(2.13e-4+5.3e-5*P.gear+7e-5*P.flap)*P.V*P.V+3375*L*L/(P.V*P.V);
+    P.V=Math.max(25,P.V+(3.0*P.eng-drag-G*Math.sin(P.gamma))*dt);
+    P.psi+=(G*Math.tan(P.phi)/P.V+rud*2*D2R)*dt;
+    const vh=P.V*Math.cos(P.gamma);
+    P.vx=vh*Math.sin(P.psi)+wind.x; P.vd=vh*Math.cos(P.psi)+wind.d; P.vy=P.V*Math.sin(P.gamma);
+    P.x+=P.vx*dt; P.d+=P.vd*dt; P.y+=P.vy*dt; P.alpha=a;
+    const ft=P.y*FT;
+    for(const h of [1000,500,200,100,50,40,30,20,10]) if(P.prevFt>h&&ft<=h&&!called.has(h)){called.add(h);callout(h);}
+    P.prevFt=ft;
+    if(!P.msg2&&P.d>-3200){P.msg2=true;const w=windInfo(st);setMsg(`JA8150、風${w.dir}度${w.spd}ノット${st.gust?`、突風${w.spd+st.gust}ノット`:''}。`,true);}
+    if(P.y<=0){P.y=0;touchdown();}
+    else if(P.d>st.len+1500) crash(['進入中止','滑走路を通り過ぎました。もう一度進入してください。']);
+    else if(P.y>1600||Math.abs(P.x)>4000) crash(['進入コース逸脱','空港から離れすぎました。ILS の紫バーを中央に保ちましょう。']);
+  } else {
+    const steer=((k.rudR||k.bankR)?1:0)-((k.rudL||k.bankL)?1:0);
+    P.phi*=Math.max(0,1-dt*4);
+    P.theta=Math.max(0,P.theta-2.5*D2R*dt);
+    P.psi+=steer*4*D2R*Math.min(1,P.V/25)*dt;
+    const dec=(2.13e-4+5.3e-5+7e-5*P.flap)*P.V*P.V+(k.brake?3.2:0.25);
+    P.V=Math.max(0,P.V+(2.7*P.eng-dec)*dt);
+    P.vx=P.V*Math.sin(P.psi); P.vd=P.V*Math.cos(P.psi); P.vy=0;
+    P.x+=P.vx*dt; P.d+=P.vd*dt;
+    if(Math.abs(P.x)>30) crash(['滑走路逸脱','滑走路の外へ出てしまいました。接地後は Z/X で中心線を保ちます。']);
+    else if(P.d>st.len+20) crash(['オーバーラン','止まりきれませんでした。スロットルをアイドルにして、早めに B でブレーキを。']);
+    else if(P.V<1.5) success();
+  }
+}
+
+function touchdown(){
+  const st=STAGES[stage], fpm=-P.vy*196.85, bank=Math.abs(P.phi*R2D), pitch=P.theta*R2D, kt=P.V/KT;
+  let why=null;
+  if(P.d<0) why=['滑走路手前に接地',`滑走路端の ${Math.round(-P.d)} m 手前でした。PAPI を白2・赤2 に保ちましょう。`];
+  else if(P.d>st.len) why=['滑走路を越えて接地','高すぎる進入でした。'];
+  else if(Math.abs(P.x)>22.5) why=['滑走路外に接地',`中心線から ${Math.abs(P.x).toFixed(0)} m ずれていました。`];
+  else if(P.gear<0.95) why=['胴体着陸','ギアが下りていません。進入の始めに G でギアダウン。'];
+  else if(fpm>720) why=['ハードランディング',`接地率 ${Math.round(fpm)} fpm。50ft から機首を少し上げてフレアしてください。`];
+  else if(bank>8) why=['翼端接地',`バンク角 ${bank.toFixed(1)}° で接地しました。`];
+  else if(pitch>11) why=['テールストライク',`ピッチ ${pitch.toFixed(1)}° は大きすぎます。`];
+  else if(pitch<-1.5) why=['前輪から接地','機首下げのまま接地しました。'];
+  if(why) return crash(why);
+  P.ground=true; P.td={fpm,x:P.x,d:P.d,kt}; P.gamma=0; P.vy=0;
+  thump(); call={text:'TOUCHDOWN',t0:now()};
+}
+function crash(why){
+  mode='result'; result={ok:false,title:why[0],detail:why[1]}; flash=now(); noise();
+}
+function success(){
+  const st=STAGES[stage], td=P.td;
+  let s=1000-Math.max(0,td.fpm-120)*0.9-Math.abs(td.x)*12-Math.abs(td.d-400)*0.35-Math.max(0,td.kt-150)*8;
+  s=Math.round(clamp(s,0,1000));
+  const grade=s>=850?'EXCELLENT':s>=650?'GOOD LANDING':'LANDED';
+  const prev=save.best[stage]||0; if(s>prev) save.best[stage]=s;
+  if(stage+2>save.unlocked) save.unlocked=Math.min(STAGES.length,stage+2);
+  persist();
+  mode='result'; result={ok:true,score:s,grade,td,stop:P.d,newBest:s>prev};
+  setMsg(`JA8150、${st.name}タワー。ナイスランディング。次の誘導路で滑走路から離脱してください。`,true);
+  renderChips();
+}
+
+/* audio */
+let ac=null,hum=null,soundOn=true;
+function initAudio(){ if(ac) {if(ac.state==='suspended')ac.resume();return;} try{
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  const o1=ac.createOscillator(),o2=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain();
+  o1.type='sawtooth';o2.type='square';o1.frequency.value=60;o2.frequency.value=61;f.type='lowpass';f.frequency.value=360;g.gain.value=0;
+  o1.connect(f);o2.connect(f);f.connect(g);g.connect(ac.destination);o1.start();o2.start();hum={o1,o2,g};
+ }catch(e){ac=null}}
+function updHum(){ if(!hum) return; const on=soundOn&&mode==='fly'&&!paused; const t=ac.currentTime;
+  hum.g.gain.setTargetAtTime(on?0.02+P.eng*0.045:0,t,.12); const fr=52+P.eng*48;
+  hum.o1.frequency.setTargetAtTime(fr,t,.25); hum.o2.frequency.setTargetAtTime(fr*1.018,t,.25);}
+function beep(f,dur,vol=.05){ if(!ac||!soundOn) return; const o=ac.createOscillator(),g=ac.createGain(); o.type='square';o.frequency.value=f;
+  g.gain.setValueAtTime(vol,ac.currentTime); g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+dur); o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur);}
+function noise(){ if(!ac||!soundOn) return; const n=ac.sampleRate*1.2,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2); const s=ac.createBufferSource(),g=ac.createGain(); g.gain.value=.35; s.buffer=b;s.connect(g);g.connect(ac.destination);s.start();}
+function thump(){beep(70,.25,.12);}
+function speak(text,lang){ if(!soundOn) return; try{const s=window.speechSynthesis; if(!s) return; s.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang=lang; u.rate=lang==='en-US'?1.15:1.05; s.speak(u);}catch(e){} }
+const WORDS={1000:'one thousand',500:'five hundred',200:'minimums',100:'one hundred',50:'fifty',40:'forty',30:'thirty',20:'twenty',10:'ten'};
+function callout(h){ call={text:h===200?'MINIMUMS':String(h),t0:now()}; beep(880,.08,.03); speak(WORDS[h],'en-US'); }
+
+/* camera */
+let cps,sps,cth,sth,cph,sph;
+function setCam(){cps=Math.cos(P.psi);sps=Math.sin(P.psi);cth=Math.cos(P.theta);sth=Math.sin(P.theta);cph=Math.cos(P.phi);sph=Math.sin(P.phi);}
+function cam(px,py,pd){
+  const rx=px-P.x, ry=py-(P.y+EYE), rd=pd-P.d;
+  const cx=rx*cps-rd*sps, cz=rx*sps+rd*cps;
+  const cy2=ry*cth-cz*sth, cz2=ry*sth+cz*cth;
+  return [cx*cph-cy2*sph, cx*sph+cy2*cph, cz2];
+}
+function clipPoly(pts){const out=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],ai=a[2]>=NEAR,bi=b[2]>=NEAR;
+  if(ai)out.push(a); if(ai!==bi){const t=(NEAR-a[2])/(b[2]-a[2]);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,NEAR]);}}return out;}
+/* night scenery (generated once) */
+function rng(s){return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+const LC={white:[255,244,212],green:[80,255,120],red:[255,52,40],amber:[255,186,70],blue:[80,130,255],strobe:[225,238,255],sodium:[255,168,78],warm:[255,214,140]};
+const GLOW={},CORE={};
+for(const k in LC){const [r,g,b]=LC[k];const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');
+  const gr=x.createRadialGradient(16,16,0,16,16,16);
+  gr.addColorStop(0,`rgba(${r},${g},${b},1)`);gr.addColorStop(.18,`rgba(${r},${g},${b},.6)`);gr.addColorStop(.5,`rgba(${r},${g},${b},.14)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  x.fillStyle=gr;x.fillRect(0,0,32,32);GLOW[k]=c;CORE[k]=`rgb(${Math.min(255,r+40)},${Math.min(255,g+40)},${Math.min(255,b+40)})`;}
+const SCENE=(()=>{const r=rng(9801);
+  const stars=[];for(let i=0;i<280;i++)stars.push({az:r()*360,el:3+Math.pow(r(),.7)*42,b:r(),tw:r()*6.28});
+  const blds=[];
+  for(let k=0;k<9;k++){const caz=r()*360,spread=6+r()*24,n=14+Math.floor(r()*34),tall=.6+r()*1.5;
+    for(let i=0;i<n;i++){const az=caz+(r()-.5)*spread*2;const w=.25+r()*1.1;
+      const h=Math.max(.12,(.15+Math.pow(r(),2)*tall*1.6)*(1-Math.min(1,Math.abs(az-caz)/(spread*1.3))*.6));
+      const win=[];const cols=Math.max(1,Math.floor(w/.13)),rows=Math.max(1,Math.floor(h/.12));
+      for(let cx=0;cx<cols;cx++)for(let ry=0;ry<rows;ry++)if(r()<.36)win.push([(cx+.5)/cols,(ry+.5)/rows,r()<.72?0:r()<.6?1:2]);
+      blds.push({az,w,h,win,beacon:h>1.1&&r()<.75,ph:r()*6.28});}}
+  const band=[];for(let i=0;i<1100;i++)band.push({az:r()*360,el:-(Math.pow(r(),1.8)*1.7)-0.04,c:r()<.65?0:r()<.75?1:2,s:r()});
+  return {stars,blds,band};})();
+const WC=['#ffcf78','#f4f1e6','#9fd8ff'];
+
+/* render: outside view */
+function quad(x0,d0,x1,d1,col){
+  const cp=clipPoly([cam(x0,0,d0),cam(x1,0,d0),cam(x1,0,d1),cam(x0,0,d1)]); if(cp.length<3) return;
+  ctx.beginPath(); cp.forEach((c,i)=>{const sx=CX+F*c[0]/c[2],sy=CY-F*c[1]/c[2]; i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);});
+  ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+}
+function light(x,d,key,base,glow=1,h=0.4){
+  const c=cam(x,h,d); if(c[2]<NEAR) return; const sx=CX+F*c[0]/c[2], sy=CY-F*c[1]/c[2];
+  if(sx<-30||sx>W+30||sy<-30||sy>VH+30) return;
+  const s=clamp(base*260/c[2],.7,base*1.8), gs=Math.max(s*5,base*2.2)*glow;
+  ctx.globalAlpha=Math.min(1,.45+80/c[2]); ctx.drawImage(GLOW[key],sx-gs/2,sy-gs/2,gs,gs); ctx.globalAlpha=1;
+  ctx.fillStyle=CORE[key]; ctx.fillRect(sx-s/2,sy-s/2,s,s);
+}
+function drawWorld(){
+  const st=STAGES[stage], L=st.len, T=now();
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,VH); ctx.clip();
+  ctx.fillStyle='#04061a'; ctx.fillRect(0,0,W,VH);
+  setCam();
+  const hdgDeg=st.hdg+P.psi*R2D;
+  const ys=el=>F*Math.tan(clamp(P.theta-el*D2R,-1.35,1.35));
+  const xs=a=>F*Math.tan(a*D2R);
+  const rel=az=>((az-hdgDeg)%360+540)%360-180;
+  ctx.save(); ctx.translate(CX,CY); ctx.rotate(-P.phi);
+  const hy=ys(0);
+  let g=ctx.createLinearGradient(0,hy-230,0,hy);
+  g.addColorStop(0,'#04061a');g.addColorStop(.6,'#0b1033');g.addColorStop(.88,'#1c1b44');g.addColorStop(1,'#4b2f4c');
+  ctx.fillStyle=g; ctx.fillRect(-900,hy-1400,1800,1400);
+  for(const s of SCENE.stars){const d=rel(s.az); if(Math.abs(d)>62) continue; const y=ys(s.el); if(y>hy-6) continue;
+    ctx.fillStyle=`rgba(230,235,255,${.3+.7*s.b*(.7+.3*Math.sin(T*2+s.tw))})`; const z=s.b>.92?1.7:1; ctx.fillRect(xs(d),y,z,z);}
+  {const d=rel(st.hdg+48); if(Math.abs(d)<62){const x=xs(d),y=ys(22);
+    ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.45;ctx.drawImage(GLOW.warm,x-34,y-34,68,68);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    ctx.fillStyle='#f4efd6';ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();ctx.fillStyle='#0a0e2c';ctx.beginPath();ctx.arc(x+3,y-2,5.4,0,7);ctx.fill();}}
+  g=ctx.createLinearGradient(0,hy-70,0,hy); g.addColorStop(0,'rgba(255,140,70,0)'); g.addColorStop(1,'rgba(255,140,70,.24)');
+  ctx.fillStyle=g; ctx.fillRect(-900,hy-70,1800,70);
+  for(const b of SCENE.blds){const d=rel(b.az); if(Math.abs(d)>62) continue;
+    const x1=xs(d-b.w/2),x2=xs(d+b.w/2),top=ys(b.h),bw=x2-x1,bh=hy-top;
+    ctx.fillStyle='#0a0e20'; ctx.fillRect(x1,top,bw,bh+1);
+    for(const w of b.win){ctx.fillStyle=WC[w[2]]; ctx.fillRect(x1+bw*w[0]-.6,top+bh*w[1]-.6,1.2,1.2);}
+    if(b.beacon&&Math.sin(T*2.4+b.ph)>.2){ctx.fillStyle='#ff3a2a';ctx.fillRect(x1+bw/2-1.2,top-2.5,2.4,2.4);}}
+  ctx.fillStyle='#05070b'; ctx.fillRect(-900,hy,1800,1400);
+  for(const p of SCENE.band){const d=rel(p.az); if(Math.abs(d)>62) continue; ctx.fillStyle=WC[p.c]; const z=p.s>.88?1.6:1; ctx.fillRect(xs(d),ys(p.el),z,z);}
+  ctx.restore();
+  // nearby town lights
+  const cell=240,R=24,ix0=Math.round(P.x/cell),id0=Math.round(P.d/cell);
+  for(let i=-R;i<=R;i++) for(let j=-R;j<=R;j++){
+    const gi=ix0+i,gj=id0+j,h=hash(gi,gj); if(h>.55) continue;
+    const wx=gi*cell+hash(gi+17,gj-9)*cell*.9, wd=gj*cell+hash(gi-5,gj+31)*cell*.9;
+    if(wx>-90&&wx<760&&wd>-1000&&wd<L+250) continue;
+    const c=cam(wx,0,wd); if(c[2]<20||c[2]>R*cell) continue;
+    const sx=CX+F*c[0]/c[2], sy=CY-F*c[1]/c[2]; if(sx<0||sx>W||sy<0||sy>VH) continue;
+    const z=c[2]<1200?2:1; ctx.fillStyle=h<.3?'#ffb35a':'#efe9d6'; ctx.fillRect(sx,sy,z,z);
+  }
+  // runway & taxiway surfaces
+  quad(-22.5,0,22.5,L,'#131418');
+  quad(168,-80,192,L+80,'#0e0f12');
+  const m='#45464b';
+  quad(-22.5,0,-21.6,L,m); quad(21.6,0,22.5,L,m);
+  for(let x=-19;x<=19;x+=4.2){ if(Math.abs(x)<3) continue; quad(x-.9,6,x+.9,51,m); quad(x-.9,L-51,x+.9,L-6,m); }
+  for(let d=70;d<L-70;d+=50) quad(-.9,d,.9,d+30,m);
+  for(const s of [-1,1]) quad(s*6,300,s*16,345,m);
+  // lights (additive)
+  ctx.globalCompositeOperation='lighter';
+  // apron floodlights and beacon
+  for(let x=320;x<=720;x+=80) for(let d=L*.3;d<=L*.7;d+=120) light(x,d,'sodium',2.6,1.6,20);
+  light(520,L*.5,(T%1)<.5?'green':'white',3,2.4,35);
+  // taxiway: blue edges, green centreline, exits
+  for(let d=-80;d<=L+80;d+=60){light(168,d,'blue',1.6);light(192,d,'blue',1.6);}
+  for(let d=-60;d<=L+60;d+=30) light(180,d,'green',1.1,.8,.1);
+  for(const f of [.32,.56,.8]){const d=L*f; for(let x=32;x<=168;x+=17) light(x,d,'green',1.1,.8,.1);}
+  // runway edge, centreline, TDZ
+  for(let d=0;d<=L;d+=60){const k=d>L-600?'amber':'white'; light(-24,d,k,1.9); light(24,d,k,1.9);}
+  for(let d=15,i=0;d<L;d+=15,i++){const k=d>L-300?'red':d>L-900?(i%2?'red':'white'):'white'; light(0,d,k,1.2,.9,.05);}
+  for(let d=60;d<=900;d+=30) for(const x of [6.5,8,9.5]){light(x,d,'white',1.1,.8,.05);light(-x,d,'white',1.1,.8,.05);}
+  // threshold, wing bars, end
+  for(let x=-22;x<=22;x+=2.5) light(x,-2,'green',2.2,1.3);
+  for(let x=25;x<=40;x+=3){light(x,-2,'green',2.2,1.3);light(-x,-2,'green',2.2,1.3);}
+  for(let x=-22;x<=22;x+=3) light(x,L+2,'red',2.2,1.2);
+  // approach lighting
+  for(let d=-900;d<-20;d+=30) for(const x of [-1.6,0,1.6]) light(x,d,'white',2,1.2,1);
+  for(let x=4;x<=15;x+=1.5){light(x,-300,'white',2,1.2,1);light(-x,-300,'white',2,1.2,1);}
+  for(let d=-270;d<-20;d+=30) for(const x of [6.5,8,9.5]){light(x,d,'red',1.6,1.1,.6);light(-x,d,'red',1.6,1.1,.6);}
+  const rab=Math.floor((T*2%1)*20); light(0,-900+rab*30,'strobe',4,2.6,1.5);
+  // PAPI
+  const dist=300-P.d; const ang=dist>0?Math.atan2(P.y+EYE,dist)*R2D:90;
+  [[-67,2.5],[-58,2.83],[-49,3.17],[-40,3.5]].forEach(([x,th])=>light(x,300,ang>th?'white':'red',3,1.6,1));
+  ctx.globalCompositeOperation='source-over';
+  // cockpit frame
+  ctx.fillStyle='#0b0c0f';
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(30,0);ctx.lineTo(8,VH);ctx.lineTo(0,VH);ctx.fill();
+  ctx.beginPath();ctx.moveTo(W,0);ctx.lineTo(W-30,0);ctx.lineTo(W-8,VH);ctx.lineTo(W,VH);ctx.fill();
+  ctx.fillRect(0,0,W,6);
+  ctx.fillStyle='#14151a'; ctx.beginPath();ctx.moveTo(0,VH);ctx.lineTo(0,VH-12);ctx.quadraticCurveTo(CX,VH-34,W,VH-12);ctx.lineTo(W,VH);ctx.fill();
+  ctx.restore();
+}
+
+function wrapText(text,maxW){const lines=[];let cur='';for(const ch of text){const tst=cur+ch;if(ctx.measureText(tst).width>maxW&&cur){lines.push(cur);cur=ch;}else cur=tst;}if(cur)lines.push(cur);return lines;}
+
+function drawHud(){
+  const T=now();
+  // ATC message
+  if(msg.text){
+    ctx.font=`12px ${FONT}`; const shown=msg.text.slice(0,Math.floor((T-msg.t0)*22));
+    const lines=wrapText(msg.text,360); let n=0;
+    const vis=wrapText(shown,360);
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(36,12,372,lines.length*16+10);
+    ctx.fillStyle=C.green; vis.forEach((l,i)=>{ctx.fillText(l,42,27+i*16);n++;});
+  }
+  if(mode!=='fly') return;
+  // callout
+  const ca=T-call.t0; if(ca<1.3){ctx.font=`24px ${FONT}`;ctx.textAlign='center';ctx.fillStyle=`rgba(255,194,61,${1-ca/1.3})`;ctx.fillText(call.text,CX,82);ctx.textAlign='left';}
+  // warnings
+  const st=STAGES[stage], ft=P.y*FT, fpm=-P.vy*196.85, w=[];
+  if(!P.ground){
+    if(P.alpha>13) w.push('STALL');
+    if(fpm>1500&&ft<2500) w.push('SINK RATE');
+    if(P.gear<1&&ft<600) w.push('TOO LOW GEAR');
+    const dist=300-P.d; if(dist>0&&ft<1000&&ft>50&&Math.atan2(P.y,dist)*R2D<2.3) w.push('GLIDE SLOPE');
+    if(P.V/KT>250) w.push('OVERSPEED');
+  }
+  if(w.length&&(T*3%1)<.6){ctx.font=`16px ${FONT}`;ctx.textAlign='center';ctx.fillStyle=C.red;ctx.fillText(w.join('  '),CX,214);ctx.textAlign='left';}
+  if(paused){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,W,VH);ctx.font=`24px ${FONT}`;ctx.textAlign='center';ctx.fillStyle=C.white;ctx.fillText('PAUSE',CX,120);ctx.font=`12px ${FONT}`;ctx.fillText('P キーで再開',CX,146);ctx.textAlign='left';}
+}
+
+/* instruments */
+function face(cx,cy,r){ctx.fillStyle=C.face;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=C.rim;ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#23252c';ctx.beginPath();ctx.arc(cx,cy,r-4,0,7);ctx.stroke();}
+function tick(cx,cy,a,r1,r2,col,w=1){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2);ctx.stroke();}
+function label(t,x,y,col=C.white,size=10,align='center'){ctx.font=`${size}px ${FONT}`;ctx.fillStyle=col;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.textAlign='left';}
+function needle(cx,cy,a,len,col,w=2){tick(cx,cy,a,-6,len,col,w);ctx.fillStyle='#555';ctx.beginPath();ctx.arc(cx,cy,3,0,7);ctx.fill();}
+function box(t,x,y,col){ctx.font=`12px ${FONT}`;const w=ctx.measureText(t).width+8;ctx.fillStyle='#000';ctx.fillRect(x-w/2,y-11,w,15);ctx.strokeStyle='#3a3d45';ctx.lineWidth=1;ctx.strokeRect(x-w/2+.5,y-10.5,w-1,14);label(t,x,y,col,12);}
+
+function asi(cx,cy){const r=44;face(cx,cy,r);const A=k=>(135+(clamp(k,40,260)-40)/220*270)*D2R;
+  ctx.strokeStyle='#e8e8e8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r-6,A(95),A(180));ctx.stroke();
+  ctx.strokeStyle=C.green;ctx.beginPath();ctx.arc(cx,cy,r-9,A(120),A(250));ctx.stroke();
+  for(let k=40;k<=260;k+=10) tick(cx,cy,A(k),r-5,k%20?r-9:r-12,C.white);
+  for(let k=60;k<=220;k+=40){const a=A(k);label(String(k),cx+Math.cos(a)*(r-20),cy+Math.sin(a)*(r-20)+3,C.white,9);}
+  const kt=P.V/KT; needle(cx,cy,A(kt),r-8,C.white); label('KT',cx,cy-14,C.dim,9); box(String(Math.round(kt)),cx,cy+24,C.white);}
+
+function adi(cx,cy){const r=44,st=STAGES[stage];face(cx,cy,r);
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,r-4,0,7);ctx.clip();ctx.translate(cx,cy);ctx.rotate(-P.phi);
+  const k=2.6,off=P.theta*R2D*k;
+  ctx.fillStyle='#2f6fd0';ctx.fillRect(-90,-300+off,180,300);ctx.fillStyle='#7a4a24';ctx.fillRect(-90,off,180,300);
+  ctx.strokeStyle=C.white;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-90,off);ctx.lineTo(90,off);ctx.stroke();
+  ctx.lineWidth=1;for(const p of [-20,-15,-10,-5,5,10,15,20]){const y=off-p*k,w=p%10?7:14;ctx.beginPath();ctx.moveTo(-w,y);ctx.lineTo(w,y);ctx.stroke();
+    if(!(p%10)){ctx.font=`8px ${FONT}`;ctx.fillStyle=C.white;ctx.fillText(String(Math.abs(p)),w+2,y+3);}}
+  ctx.restore();
+  for(const b of [-60,-30,-20,-10,0,10,20,30,60]) tick(cx,cy,(-90+b)*D2R,r-4,b%30?r-8:r-11,C.white);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(-P.phi);ctx.fillStyle=C.white;ctx.beginPath();ctx.moveTo(0,-r+12);ctx.lineTo(-4,-r+18);ctx.lineTo(4,-r+18);ctx.fill();ctx.restore();
+  ctx.strokeStyle=C.amber;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx-24,cy);ctx.lineTo(cx-9,cy);ctx.lineTo(cx-5,cy+5);ctx.moveTo(cx+24,cy);ctx.lineTo(cx+9,cy);ctx.lineTo(cx+5,cy+5);ctx.stroke();
+  ctx.fillStyle=C.amber;ctx.fillRect(cx-1.5,cy-1.5,3,3);
+  if(P.d<st.len){const loc=Math.atan2(P.x,st.len+300-P.d)*R2D;const lx=cx-clamp(loc/2.5,-1,1)*30;
+    ctx.strokeStyle=C.mag;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lx,cy-30);ctx.lineTo(lx,cy+30);ctx.stroke();
+    const dist=300-P.d; if(dist>40){const gs=Math.atan2(P.y,dist)*R2D-3;const gy=cy+clamp(gs/0.7,-1,1)*30;ctx.beginPath();ctx.moveTo(cx-30,gy);ctx.lineTo(cx+30,gy);ctx.stroke();}}
+}
+
+function alt(cx,cy){const r=44;face(cx,cy,r);const ft=Math.max(0,P.y*FT);
+  for(let i=0;i<50;i++) tick(cx,cy,(-90+i*7.2)*D2R,r-5,i%5?r-8:r-12,C.white);
+  for(let i=0;i<10;i++){const a=(-90+i*36)*D2R;label(String(i),cx+Math.cos(a)*(r-19),cy+Math.sin(a)*(r-19)+3,C.white,10);}
+  needle(cx,cy,(-90+ft/10000*360)*D2R,r-24,C.white,4); needle(cx,cy,(-90+(ft%1000)/1000*360)*D2R,r-7,C.white,2);
+  label('ALT FT',cx,cy-14,C.dim,8); box(String(Math.round(ft/10)*10),cx,cy+24,C.white);}
+
+function vsi(cx,cy){const r=44;face(cx,cy,r);const A=v=>(180+clamp(v,-2000,2000)/2000*160)*D2R;
+  for(let v=-2000;v<=2000;v+=250) tick(cx,cy,A(v),r-5,v%500?r-8:r-12,C.white);
+  for(const v of [0,500,1000,1500,2000]){for(const s of v?[1,-1]:[1]){const a=A(v*s);label(String(v/100),cx+Math.cos(a)*(r-20),cy+Math.sin(a)*(r-20)+3,C.white,9);}}
+  const fpm=P.vy*196.85; const col=(fpm<-1000&&P.y*FT<1000)?C.red:C.white;
+  needle(cx,cy,A(fpm),r-8,col); label('UP',cx-16,cy-18,C.dim,8); label('DN',cx-16,cy+26,C.dim,8);
+  box(String(Math.round(fpm/10)*10),cx+10,cy+4,col);}
+
+function hdg(cx,cy){const r=44,st=STAGES[stage];face(cx,cy,r);const h=((st.hdg+P.psi*R2D)%360+360)%360;
+  const N=['N','3','6','E','12','15','S','21','24','W','30','33'];
+  for(let d=0;d<360;d+=10){const a=(-90+d-h)*D2R;tick(cx,cy,a,r-5,d%30?r-9:r-13,C.white);
+    if(!(d%30)) label(N[d/30],cx+Math.cos(a)*(r-21),cy+Math.sin(a)*(r-21)+4,/[NESW]/.test(N[d/30])?C.amber:C.white,10);}
+  const ba=(-90+st.hdg-h)*D2R;ctx.fillStyle=C.cyan;ctx.save();ctx.translate(cx+Math.cos(ba)*(r-4),cy+Math.sin(ba)*(r-4));ctx.rotate(ba+Math.PI/2);ctx.fillRect(-4,-1,8,5);ctx.restore();
+  ctx.fillStyle=C.amber;ctx.beginPath();ctx.moveTo(cx,cy-r+4);ctx.lineTo(cx-4,cy-r-2);ctx.lineTo(cx+4,cy-r-2);ctx.fill();
+  ctx.strokeStyle=C.amber;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx,cy+8);ctx.moveTo(cx-8,cy);ctx.lineTo(cx+8,cy);ctx.stroke();
+  box(String(Math.round(h)%360||360).padStart(3,'0'),cx,cy+26,C.amber);}
+
+function side(x){const st=STAGES[stage];
+  ctx.fillStyle='#000';ctx.fillRect(x,276,16,104);ctx.strokeStyle='#3a3d45';ctx.strokeRect(x+.5,276.5,15,103);
+  const eh=P.eng*100;ctx.fillStyle=C.green;ctx.fillRect(x+3,378-eh,10,eh);
+  const ty=378-P.thr*100;ctx.fillStyle=C.amber;ctx.fillRect(x-3,ty-1,22,2);
+  label('N1',x+8,394,C.dim,9);
+  const tx=x+26;let y=286;
+  const row=(k,v,col)=>{label(k,tx,y,C.dim,11,'left');label(v,636,y,col,12,'right');y+=17;};
+  row('GEAR',P.gear>=1?'DOWN':P.gear<=0?'UP':'TRANS',P.gear>=1?C.green:P.gear<=0?C.dim:C.amber);
+  const fl=['UP','20','30'][P.flapCmd]; row('FLAP',Math.abs(P.flap-[0,.6,1][P.flapCmd])>.01?'TRANS':fl,P.flapCmd?C.green:C.dim);
+  row('BRAKE',keys.brake?'ON':'OFF',keys.brake?C.amber:C.dim);
+  row('RA FT',P.y*FT<2500?String(Math.round(P.y*FT)):'----',C.white);
+  row('DME NM',(Math.hypot(P.x,P.d)/1852).toFixed(1),C.cyan);
+  const w=windInfo(st); row('WIND',`${w.dir}/${String(Math.round(Math.hypot(wind.x,wind.d)/KT)).padStart(2,'0')}`,C.cyan);
+}
+
+function drawPanel(){
+  ctx.fillStyle=C.panel;ctx.fillRect(0,VH,W,H-VH);ctx.fillStyle='#2e313a';ctx.fillRect(0,VH,W,2);
+  const y=VH+68; asi(52,y);adi(152,y);alt(252,y);vsi(352,y);hdg(452,y);side(508);
+}
+
+/* overlays */
+function overlay(){
+  const st=STAGES[stage],T=now();
+  if(mode==='title'){
+    ctx.fillStyle='rgba(4,6,20,.62)';ctx.fillRect(0,0,W,VH);
+    ctx.textAlign='center';ctx.font=`44px ${FONT}`;ctx.fillStyle='#2a5b8f';ctx.fillText('THE COCKPIT',CX+3,92);ctx.fillStyle=C.amber;ctx.fillText('THE COCKPIT',CX,89);
+    const w=windInfo(st);ctx.font=`14px ${FONT}`;ctx.fillStyle=C.white;
+    ctx.fillText(`STAGE ${String(stage+1).padStart(2,'0')}   ${st.name}  RWY ${st.rwy}   ${st.len}m`,CX,128);
+    ctx.fillStyle=C.cyan;ctx.fillText(`WIND ${w.dir}°/${w.spd}KT${st.gust?`  GUST ${w.spd+st.gust}KT`:''}   ${{day:'DAY',dusk:'DUSK',night:'NIGHT'}[st.tod]}`,CX,150);
+    if((T*1.6%1)<.65){ctx.fillStyle=C.green;ctx.fillText('SPACE キー または 画面タップでスタート',CX,190);}
+    ctx.font=`11px ${FONT}`;ctx.fillStyle=C.dim;ctx.fillText('空港は画面上のボタンで選べます',CX,212);
+    ctx.textAlign='left';
+  } else if(mode==='result'){
+    const fa=T-flash; if(!result.ok&&fa<.5){ctx.fillStyle=`rgba(255,60,40,${.7*(1-fa/.5)})`;ctx.fillRect(0,0,W,VH);}
+    ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(90,52,460,186);ctx.strokeStyle=result.ok?C.green:C.red;ctx.lineWidth=2;ctx.strokeRect(91,53,458,184);
+    ctx.textAlign='center';
+    if(result.ok){
+      ctx.font=`26px ${FONT}`;ctx.fillStyle=C.amber;ctx.fillText(result.grade,CX,88);
+      ctx.font=`16px ${FONT}`;ctx.fillStyle=C.white;ctx.fillText(`SCORE ${result.score}${result.newBest?'  NEW BEST':''}`,CX,112);
+      const td=result.td;ctx.font=`13px ${FONT}`;ctx.textAlign='left';
+      const rows=[['接地率',`${Math.round(td.fpm)} fpm`],['中心線からのずれ',`${td.x>=0?'R':'L'} ${Math.abs(td.x).toFixed(1)} m`],['接地点（滑走路端から）',`${Math.round(td.d)} m`],['接地速度',`${Math.round(td.kt)} kt`],['停止位置',`${Math.round(result.stop)} m`]];
+      rows.forEach((r,i)=>{ctx.fillStyle=C.dim;ctx.fillText(r[0],150,138+i*16);ctx.fillStyle=C.white;ctx.textAlign='right';ctx.fillText(r[1],490,138+i*16);ctx.textAlign='left';});
+      ctx.textAlign='center';ctx.fillStyle=C.green;ctx.font=`13px ${FONT}`;
+      ctx.fillText(stage+1<STAGES.length?'SPACE：次の空港へ':'全空港クリア！ SPACE：もう一度',CX,228);
+    } else {
+      ctx.font=`26px ${FONT}`;ctx.fillStyle=C.red;ctx.fillText(result.title,CX,98);
+      ctx.font=`13px ${FONT}`;ctx.fillStyle=C.white;wrapText(result.detail,400).forEach((l,i)=>ctx.fillText(l,CX,134+i*18));
+      ctx.fillStyle=C.green;ctx.fillText('SPACE：もう一度',CX,224);
+    }
+    ctx.textAlign='left';
+  }
+}
+
+/* main loop */
+let scale=1;
+function resize(){const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;scale=Math.max(.5,r.width*dpr/W);cv.width=Math.round(W*scale);cv.height=Math.round(H*scale);}
+function render(){ctx.setTransform(scale,0,0,scale,0,0);ctx.textBaseline='alphabetic';ctx.clearRect(0,0,W,H);drawWorld();drawHud();drawPanel();overlay();}
+let last=performance.now(),acc=0;
+function frame(t){const dt=Math.min(.1,(t-last)/1000);last=t;
+  if(mode==='fly'&&!paused){acc+=dt;while(acc>=1/120){update(1/120);acc-=1/120;if(mode!=='fly')break;}}else acc=0;
+  render();updHum();requestAnimationFrame(frame);}
+
+/* input */
+const KEYMAP={ArrowLeft:'bankL',Numpad4:'bankL',Digit4:'bankL',ArrowRight:'bankR',Numpad6:'bankR',Digit6:'bankR',
+ ArrowUp:'noseDn',Numpad8:'noseDn',Digit8:'noseDn',ArrowDown:'noseUp',Numpad5:'noseUp',Digit5:'noseUp',Numpad2:'noseUp',Digit2:'noseUp',
+ KeyQ:'thrUp',KeyA:'thrDn',KeyZ:'rudL',KeyX:'rudR',KeyB:'brake'};
+function tap(a){
+  if(a==='go'){ if(mode!=='fly') start(); return; }
+  if(a==='pause'){ if(mode==='fly'){paused=!paused;} return; }
+  if(mode!=='fly'||paused) return;
+  if(a==='gear'){P.gearCmd=P.gearCmd?0:1;beep(440,.05,.03);}
+  if(a==='flap'){P.flapCmd=(P.flapCmd+1)%3;beep(520,.05,.03);}
+}
+window.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const act=KEYMAP[e.code];
+  if(act){keys[act]=true;e.preventDefault();return;}
+  if(e.code==='Space'||e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();if(!e.repeat)tap('go');return;}
+  if(e.repeat) return;
+  if(e.code==='KeyG')tap('gear'); else if(e.code==='KeyF')tap('flap'); else if(e.code==='KeyP')tap('pause'); else if(e.code==='KeyM')toggleSound();
+});
+window.addEventListener('keyup',e=>{const act=KEYMAP[e.code];if(act)keys[act]=false;});
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+cv.addEventListener('pointerdown',()=>{cv.focus();if(mode!=='fly')start();});
+document.querySelectorAll('#touch button').forEach(b=>{
+  const act=b.dataset.act,tp=b.dataset.tap;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();b.classList.add('on');if(act)keys[act]=true;if(tp)tap(tp);try{b.setPointerCapture(e.pointerId)}catch(_){}});
+  const up=()=>{b.classList.remove('on');if(act)keys[act]=false;};
+  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+});
+const sndBtn=document.getElementById('snd');
+function toggleSound(){soundOn=!soundOn;sndBtn.textContent=soundOn?'音声 ON':'音声 OFF';if(!soundOn)try{speechSynthesis.cancel()}catch(e){} }
+sndBtn.addEventListener('click',()=>{initAudio();toggleSound();sndBtn.blur();});
+
+/* stage chips */
+const chipsEl=document.getElementById('stages');
+function renderChips(){
+  chipsEl.innerHTML='';
+  STAGES.forEach((st,i)=>{const w=windInfo(st);const b=document.createElement('button');b.type='button';b.className='chip';
+    b.disabled=i>=save.unlocked;b.setAttribute('aria-pressed',String(i===stage));
+    const best=save.best[i];
+    b.innerHTML=`<span class="no">STAGE ${String(i+1).padStart(2,'0')}${b.disabled?' · LOCK':best?` · BEST ${best}`:''}</span><span class="ap">${st.name} ${st.rwy}</span><span class="meta">WIND ${w.dir}/${String(w.spd).padStart(2,'0')}${st.gust?'G'+(w.spd+st.gust):''}</span>`;
+    b.addEventListener('click',()=>{reset(i);mode='title';b.blur();cv.focus();});
+    chipsEl.appendChild(b);});
+}
+
+/* boot */
+function boot(data){
+  const s=data&&Number.isInteger(data.stage)?clamp(data.stage,0,STAGES.length-1):Math.max(0,save.unlocked-1);
+  reset(s); mode='title';
+  resize(); new ResizeObserver(resize).observe(cv);
+  requestAnimationFrame(frame);
+}
+window.claude?.hot?.snapshot?.(()=>({stage}));
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body></html>
